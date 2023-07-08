@@ -219,6 +219,7 @@ void print_help(char **argv)
     printf("             HH  HH  EE     LL     PP   \n");
     printf("             HH  HH  EEEEE  LLLLL  PP   \n\n");
     printf("%s convert a .txt file into a .hex file\n", argv[0]);
+    printf("each line is saved as single string\n");
     printf("usage: %s <command> [<args>]\n\n", argv[0]);
     printf("Available commands:\n\n");
     printf("main functionality\n");
