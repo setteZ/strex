@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "./lib/libGIS/ihex.h"
+
 
 /* ==========================       typedefs           ========================== */
 
@@ -26,6 +28,7 @@
 #define OUTPUT_FILE_DEFAULT      "output.hex"
 #define ADDRESS_OFFSET_DEFAULT   0
 #define RECORD_TYPE              0
+#define LINE_MAX_LEN             0x10
 
 /* ==========================        typedefs          ========================== */
 
@@ -148,7 +151,58 @@ int main (int argc, char **argv)
     printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     // disclaimer - end
 
-    printf("%s -a %d -i %s -o %s", argv[0], address_offset, input_file, output_file);
+    {
+        int i;
+        char line[LINE_MAX_LEN + 2];
+        FILE * in;
+        FILE * out;
+
+        in = fopen(input_file, "r");
+        if(NULL == in)
+        {
+            printf("missing %s file\n", input_file);
+            return EXIT_FAILURE;
+        }
+
+        out = fopen(output_file, "w");
+        fclose(out);
+
+        while(fgets(line, LINE_MAX_LEN, in) != NULL)
+        {
+            char * ret;
+            int line_len;
+
+            ret = strchr ((const char *)&line, '\n');
+            if(NULL != ret)
+            {
+                *ret = '\0';
+            }
+
+            ret = strchr ((const char *)&line, '\r');
+            if(NULL != ret)
+            {
+                *ret = '\0';
+            }
+            
+            line_len = strlen(line); 
+            if(line_len)
+            {
+                IHexRecord ihexRecord;
+
+                (void)New_IHexRecord(0, address_offset, line, line_len + 1, &ihexRecord);
+                out = fopen(output_file, "a");
+                (void)Write_IHexRecord(&ihexRecord, out);
+                fclose(out);
+                address_offset += line_len + 1;
+            }
+        }
+
+        out = fopen(output_file, "a");
+        fprintf(out, ":00000001FF\r\n");
+        fclose(out);
+
+        fclose(in);
+    }
 
     return EXIT_SUCCESS;
 }
