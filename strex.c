@@ -208,10 +208,24 @@ int main (int argc, char **argv)
 
 int address_arg_parser(char *arg)
 {
-    /* TODO:
-        manage hex format like 0x123 or 123h
-    */
-    return atoi(arg);
+    int base = 10;
+    int arg_len = strlen(arg);
+
+    if(arg_len > 1)
+    {
+        if(arg[arg_len - 1] == 'h')
+        {
+            /* 10h format */
+            base = 16;
+        }
+        else if((arg[1] == 'x') || (arg[1] == 'X'))
+        {
+            /* 0x10 format */
+            base = 16;
+        }
+    }
+
+    return (int)strtol(arg, NULL, base);
 }
 
 void print_help(char **argv)
@@ -229,7 +243,8 @@ void print_help(char **argv)
     printf("main functionality\n");
     printf("   -i <filename> the input txt file (default %d)\n", INPUT_FILE_DEFAULT);
     printf("   -o <filename> the input txt file (default %d)\n", OUTPUT_FILE_DEFAULT);
-    printf("   -a <num>      the beginning memory address offset of the data (default %d)\n", ADDRESS_OFFSET_DEFAULT);
+    printf("   -a <num>      the beginning memory address offset of the data\n");
+    printf("                 hex format 0x10 and 10h accepted (default %d)\n", ADDRESS_OFFSET_DEFAULT);
     printf("\ninfo\n");
     printf("   -h            help screen\n");
     printf("   -l            license\n");
