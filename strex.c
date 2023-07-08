@@ -41,6 +41,7 @@ const char* rev = "0.1";
 
 /* ==========================    function prototypes   ========================== */
 void print_help(char **argv);
+int address_arg_parser(char *arg);
 
 /************************************** MAIN **************************************/
 int main (int argc, char **argv)
@@ -88,12 +89,7 @@ int main (int argc, char **argv)
             break;
 
             case 'a':
-            {
-                address_offset = atoi(optarg);
-                /* TODO:
-                   manage hex format like 0x123 or 123h
-                */
-            }
+                address_offset = address_arg_parser(optarg);
             break;
 
             case 'h':
@@ -209,6 +205,14 @@ int main (int argc, char **argv)
 
 /**********************************************************************************/
 /**********************************************************************************/
+
+int address_arg_parser(char *arg)
+{
+    /* TODO:
+        manage hex format like 0x123 or 123h
+    */
+    return atoi(arg);
+}
 
 void print_help(char **argv)
 {
