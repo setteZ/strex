@@ -227,7 +227,7 @@ void print_help(char **argv)
     printf("   -o <filename> the input txt file (default %d)\n", OUTPUT_FILE_DEFAULT);
     printf("   -a <num>      the beginning memory address offset of the data (default %d)\n", ADDRESS_OFFSET_DEFAULT);
     printf("\ninfo\n");
-    printf("   -h           help screen\n");
-    printf("   -l           license\n");
-    printf("   -v           program version\n");
+    printf("   -h            help screen\n");
+    printf("   -l            license\n");
+    printf("   -v            program version\n");
 }
