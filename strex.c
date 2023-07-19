@@ -24,11 +24,11 @@
 
 /* ==========================        defines           ========================== */
 
-#define INPUT_FILE_DEFAULT       "input.txt"
-#define OUTPUT_FILE_DEFAULT      "output.hex"
-#define ADDRESS_OFFSET_DEFAULT   0
-#define RECORD_TYPE              0
-#define LINE_MAX_LEN             0x10
+#define INPUT_FILE_DEFAULT           "input.txt"
+#define OUTPUT_FILE_DEFAULT          "output.hex"
+#define EXT_SEGMENT_ADDRESS_DEFAULT  0
+#define RECORD_TYPE                  0
+#define LINE_MAX_LEN              0x10
 
 /* ==========================        typedefs          ========================== */
 
@@ -48,7 +48,8 @@ int main (int argc, char **argv)
 {
     char * input_file = INPUT_FILE_DEFAULT;
     char * output_file = OUTPUT_FILE_DEFAULT;
-    unsigned int address_offset = ADDRESS_OFFSET_DEFAULT;
+    unsigned int segment_address = EXT_SEGMENT_ADDRESS_DEFAULT;
+    unsigned int linear_address  = -1;
 
     /** parse argument */
     while (1)
@@ -57,9 +58,10 @@ int main (int argc, char **argv)
         static struct option long_options[] =
         {
             /* Funciotnality options*/
-            {"address",  required_argument, 0, 'a'},
-            {"input",    required_argument, 0, 'i'},
-            {"output",   required_argument, 0, 'o'},
+            {"ext-seg-adr", required_argument, 0, 's'},
+            {"ext-lin-adr", required_argument, 0, 'i'},
+            {"data",        required_argument, 0, 'd'},
+            {"output",      required_argument, 0, 'o'},
 
             /* Info options*/
             {"help",     no_argument,       0, 'h'},
@@ -88,8 +90,13 @@ int main (int argc, char **argv)
                 printf ("\n");
             break;
 
-            case 'a':
-                address_offset = address_arg_parser(optarg);
+            case 's':
+                segment_address = address_arg_parser(optarg);
+            break;
+
+            case 'i':
+                linear_address  = address_arg_parser(optarg);
+                segment_address = -1;
             break;
 
             case 'h':
@@ -97,7 +104,7 @@ int main (int argc, char **argv)
                 return EXIT_SUCCESS;
             break;
 
-            case 'i':
+            case 'd':
                 input_file = malloc((strlen(optarg) + 1) * sizeof(char));
                 strcpy(input_file, optarg);
             break;
@@ -163,6 +170,33 @@ int main (int argc, char **argv)
         out = fopen(output_file, "w");
         fclose(out);
 
+        {
+            IHexRecord ihexRecord;
+            char address_field[2];
+            int type;
+
+            if(linear_address != -1)
+            {
+                type = 4;
+                address_field[1] =  linear_address       & 0xff;
+                address_field[0] = (linear_address >> 8) & 0xff;
+            }
+
+            if(segment_address != -1)
+            {
+                type = 2;
+                address_field[1] =  segment_address       & 0xff;
+                address_field[0] = (segment_address >> 8) & 0xff;
+            }
+
+            (void)New_IHexRecord(type, 0, address_field, 2, &ihexRecord);
+            out = fopen(output_file, "a");
+            (void)Write_IHexRecord(&ihexRecord, out);
+            fclose(out);
+        }
+
+        int data_address = 0;
+
         while(fgets(line, LINE_MAX_LEN, in) != NULL)
         {
             char * ret;
@@ -185,11 +219,11 @@ int main (int argc, char **argv)
             {
                 IHexRecord ihexRecord;
 
-                (void)New_IHexRecord(0, address_offset, line, line_len + 1, &ihexRecord);
+                (void)New_IHexRecord(0, data_address, line, line_len + 1, &ihexRecord);
                 out = fopen(output_file, "a");
                 (void)Write_IHexRecord(&ihexRecord, out);
                 fclose(out);
-                address_offset += line_len + 1;
+                data_address += line_len + 1;
             }
         }
 
@@ -241,12 +275,15 @@ void print_help(char **argv)
     printf("usage: %s <command> [<args>]\n\n", argv[0]);
     printf("Available commands:\n\n");
     printf("main functionality\n");
-    printf("   -i <filename> the input txt file (default %d)\n", INPUT_FILE_DEFAULT);
-    printf("   -o <filename> the input txt file (default %d)\n", OUTPUT_FILE_DEFAULT);
-    printf("   -a <num>      the beginning memory address offset of the data\n");
-    printf("                 hex format 0x10 and 10h accepted (default %d)\n", ADDRESS_OFFSET_DEFAULT);
+    printf("   -d <filename>       the txt file used for data record (default %d)\n", INPUT_FILE_DEFAULT);
+    printf("   -o <filename>       the input txt file (default %d)\n", OUTPUT_FILE_DEFAULT);
+    printf("   -ext-lin-adr <num>  the extended linear address\n");
+    printf("                       hex format 0x10 and 10h accepted (default %d)\n", EXT_SEGMENT_ADDRESS_DEFAULT);
+    printf("   -ext-seg-adr <num>  the extended segment address\n");
+    printf("                       hex format 0x10 and 10h accepted\n");
+    printf("   extended linear address is the default\n");
     printf("\ninfo\n");
-    printf("   -h            help screen\n");
-    printf("   -l            license\n");
-    printf("   -v            program version\n");
+    printf("   -h   help screen\n");
+    printf("   -l   license\n");
+    printf("   -v   program version\n");
 }
