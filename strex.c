@@ -37,7 +37,7 @@
 /* ==========================    global variables      ========================== */
 
 /* ==========================    local variables       ========================== */
-const char* rev = "0.1";
+const char* rev = "0.2.pre";
 
 /* ==========================    function prototypes   ========================== */
 void print_help(char **argv);
